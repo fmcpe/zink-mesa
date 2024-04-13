@@ -684,29 +684,6 @@ index 721ecd6..1cb2a21 100644
    ],
    dependencies : [idep_mesautil],
  )
-diff --git a/src/gallium/targets/dri/target.c b/src/gallium/targets/dri/target.c
-index b5e3603..06b22c2 100644
---- a/src/gallium/targets/dri/target.c
-+++ b/src/gallium/targets/dri/target.c
-@@ -9,7 +9,7 @@
- const __DRIextension **__driDriverGetExtensions_##drivername(void);       \
- PUBLIC const __DRIextension **__driDriverGetExtensions_##drivername(void) \
- {                                                                         \
--   return galliumdrm_driver_extensions;                                   \
-+   return NULL;                                   \
- }
-
- #if defined(GALLIUM_SOFTPIPE)
-@@ -146,7 +146,7 @@ const __DRIextension **__driDriverGetExtensions_zink(void);
-
- PUBLIC const __DRIextension **__driDriverGetExtensions_zink(void)
- {
--   return debug_get_bool_option("LIBGL_KOPPER_DISABLE", false) ? galliumdrm_driver_extensions : galliumvk_driver_extensions;
-+   return NULL;
- }
- #endif
-
-
 diff --git a/src/gallium/targets/osmesa/meson.build b/src/gallium/targets/osmesa/meson.build
 index d16e785..45df4b5 100644
 --- a/src/gallium/targets/osmesa/meson.build
