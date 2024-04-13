@@ -705,6 +705,8 @@ index b5e3603..06b22c2 100644
 +   return NULL;
  }
  #endif
+
+
 diff --git a/src/gallium/targets/osmesa/meson.build b/src/gallium/targets/osmesa/meson.build
 index d16e785..45df4b5 100644
 --- a/src/gallium/targets/osmesa/meson.build
