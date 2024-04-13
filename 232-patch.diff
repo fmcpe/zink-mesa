@@ -128,27 +128,6 @@ index 0000000..67efc35
 +        with:
 +          name: libzink
 +          path: /tmp/zink
-diff --git a/.gitignore b/.gitignore
-index 5a7eb0e..0a52505 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -3,3 +3,4 @@
- *.pyo
- *.out
- /build
-+/build-android-*
-diff --git a/.gitignore.rej b/.gitignore.rej
-new file mode 100644
-index 0000000..a7a5d70
---- /dev/null
-+++ b/.gitignore.rej
-@@ -0,0 +1,6 @@
-+diff a/.gitignore b/.gitignore	(rejected hunks)
-+@@ -2,3 +2,4 @@
-+ *.pyo
-+ *.out
-+ build
-++build-android-*
 diff --git a/android-cross-file-gen.sh b/android-cross-file-gen.sh
 new file mode 100644
 index 0000000..13dbd7c
