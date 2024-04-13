@@ -409,18 +409,17 @@ diff --git a/meson.build b/meson.build
 index 305b34d..f37e471 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -270,7 +270,8 @@ with_libclc = with_clc
+@@ -339,7 +339,7 @@ with_clc = with_microsoft_clc or with_intel_clc or with_gallium_asahi
  with_spirv_to_dxil = get_option('spirv-to-dxil')
- 
+
  if host_machine.system() == 'darwin'
 -  with_dri_platform = 'apple'
 +  with_dri_platform = 'none'
-+  # 'apple'
    pre_args += '-DBUILDING_MESA'
  elif ['windows', 'cygwin'].contains(host_machine.system())
    with_dri_platform = 'windows'
-@@ -444,7 +445,7 @@ endif
- 
+@@ -527,7 +527,7 @@ endif
+
  if with_glx != 'disabled'
    if not (with_platform_x11 and with_any_opengl)
 -    error('Cannot build GLX support without X11 platform support and at least one OpenGL API')
@@ -428,7 +427,7 @@ index 305b34d..f37e471 100644
    elif with_glx == 'xlib'
      if not with_gallium
        error('xlib based GLX requires at least one gallium driver')
-@@ -1579,7 +1580,7 @@ if system_has_kms_drm
+@@ -1686,7 +1686,7 @@ if system_has_kms_drm
    dep_libdrm = dependency(
      'libdrm', version : '>=' + _drm_ver,
      # GNU/Hurd includes egl_dri2, without drm.
@@ -437,8 +436,8 @@ index 305b34d..f37e471 100644
    )
  else
    # We should prevent libdrm from being available when the target doesn't have it to avoid transitive
-@@ -1876,7 +1877,7 @@ endif
- 
+@@ -1994,7 +1994,7 @@ endif
+
  if with_osmesa
    if not with_gallium_softpipe
 -    error('OSMesa gallium requires gallium softpipe or llvmpipe.')
@@ -446,15 +445,16 @@ index 305b34d..f37e471 100644
    endif
    if host_machine.system() == 'windows'
      osmesa_lib_name = 'osmesa'
-@@ -1939,7 +1940,7 @@ if host_machine.cpu_family() == 'x86_64' and cc.get_id() == 'gcc'
- endif
- 
+@@ -2067,7 +2067,7 @@ endif
+
  with_dri3_modifiers = false
+ with_xcb_keysyms = false
 -if with_platform_x11
 +if with_platform_x11 and host_machine.system() != 'darwin'
    if with_glx == 'xlib'
      dep_x11 = dependency('x11')
      dep_xext = dependency('xext')
+
 diff --git a/nativewindow.pc b/nativewindow.pc
 new file mode 100644
 index 0000000..cfe23c0
@@ -484,10 +484,10 @@ diff --git a/src/gallium/auxiliary/target-helpers/inline_sw_helper.h b/src/galli
 index d821008..457b2d8 100644
 --- a/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
 +++ b/src/gallium/auxiliary/target-helpers/inline_sw_helper.h
-@@ -33,6 +33,10 @@
- #include "asahi/agx_public.h"
+@@ -29,6 +29,10 @@
+ #include "d3d12/d3d12_public.h"
  #endif
- 
+
 +#ifdef GALLIUM_ZINK
 +#include "zink/zink_public.h"
 +#endif
@@ -495,7 +495,7 @@ index d821008..457b2d8 100644
  static inline struct pipe_screen *
  sw_screen_create_named(struct sw_winsys *winsys, const char *driver)
  {
-@@ -92,6 +96,9 @@ sw_screen_create_vk(struct sw_winsys *winsys, bool sw_vk)
+@@ -80,6 +84,9 @@ sw_screen_create_vk(struct sw_winsys *winsys, bool sw_vk)
  #endif
  #if defined(GALLIUM_SOFTPIPE)
        (sw_vk ? "" : "softpipe"),
@@ -509,7 +509,7 @@ diff --git a/src/gallium/drivers/zink/zink_instance.py b/src/gallium/drivers/zin
 index c3bd231..e3ea170 100644
 --- a/src/gallium/drivers/zink/zink_instance.py
 +++ b/src/gallium/drivers/zink/zink_instance.py
-@@ -42,6 +42,8 @@ EXTENSIONS = [
+@@ -43,6 +43,8 @@ EXTENSIONS = [
      Extension("VK_MVK_moltenvk",
          nonstandard=True),
      Extension("VK_KHR_surface"),
@@ -522,7 +522,7 @@ diff --git a/src/gallium/drivers/zink/zink_kopper.c b/src/gallium/drivers/zink/z
 index 09ca173..850ebe5 100644
 --- a/src/gallium/drivers/zink/zink_kopper.c
 +++ b/src/gallium/drivers/zink/zink_kopper.c
-@@ -55,6 +55,16 @@ init_dt_type(struct kopper_displaytarget *cdt)
+@@ -56,6 +56,16 @@ init_dt_type(struct kopper_displaytarget *cdt)
  {
     VkStructureType type = cdt->info.bos.sType;
     switch (type) {
@@ -539,7 +539,7 @@ index 09ca173..850ebe5 100644
  #ifdef VK_USE_PLATFORM_XCB_KHR
     case VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR:
        cdt->type = KOPPER_X11;
-@@ -84,6 +94,16 @@ kopper_CreateSurface(struct zink_screen *screen, struct kopper_displaytarget *cd
+@@ -85,6 +95,16 @@ kopper_CreateSurface(struct zink_screen *screen, struct kopper_displaytarget *cd
     init_dt_type(cdt);
     VkStructureType type = cdt->info.bos.sType;
     switch (type) {
@@ -555,8 +555,8 @@ index 09ca173..850ebe5 100644
 +#endif
  #ifdef VK_USE_PLATFORM_XCB_KHR
     case VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR: {
-       VkXcbSurfaceCreateInfoKHR *xcb = (VkXcbSurfaceCreateInfoKHR *)&cdt->info.bos;
-@@ -127,7 +147,7 @@ kopper_CreateSurface(struct zink_screen *screen, struct kopper_displaytarget *cd
+ #ifdef GLX_USE_APPLE
+@@ -132,7 +152,7 @@ kopper_CreateSurface(struct zink_screen *screen, struct kopper_displaytarget *cd
        /* VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR and VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR
        * are not handled
        */
@@ -565,7 +565,7 @@ index 09ca173..850ebe5 100644
        if (modes[i] <= VK_PRESENT_MODE_FIFO_RELAXED_KHR)
           cdt->present_modes |= BITFIELD_BIT(modes[i]);
     }
-@@ -181,6 +201,18 @@ find_dt_entry(struct zink_screen *screen, const struct kopper_displaytarget *cdt
+@@ -200,6 +220,18 @@ find_dt_entry(struct zink_screen *screen, const struct kopper_displaytarget *cdt
  {
     struct hash_entry *he = NULL;
     switch (cdt->type) {
@@ -584,7 +584,7 @@ index 09ca173..850ebe5 100644
  #ifdef VK_USE_PLATFORM_XCB_KHR
     case KOPPER_X11: {
        VkXcbSurfaceCreateInfoKHR *xcb = (VkXcbSurfaceCreateInfoKHR *)&cdt->info.bos;
-@@ -278,6 +310,8 @@ kopper_CreateSwapchain(struct zink_screen *screen, struct kopper_displaytarget *
+@@ -304,6 +336,8 @@ kopper_CreateSwapchain(struct zink_screen *screen, struct kopper_displaytarget *
        cswap->scci.imageExtent.width = cdt->caps.currentExtent.width;
        cswap->scci.imageExtent.height = cdt->caps.currentExtent.height;
        break;
@@ -593,7 +593,7 @@ index 09ca173..850ebe5 100644
     case KOPPER_WAYLAND:
        /* On Wayland, currentExtent is the special value (0xFFFFFFFF, 0xFFFFFFFF), indicating that the
         * surface size will be determined by the extent of a swapchain targeting the surface. Whatever the
-@@ -382,6 +416,8 @@ zink_kopper_displaytarget_create(struct zink_screen *screen, unsigned tex_usage,
+@@ -413,6 +447,8 @@ zink_kopper_displaytarget_create(struct zink_screen *screen, unsigned tex_usage,
           case KOPPER_X11:
              _mesa_hash_table_init(&screen->dts, screen, NULL, _mesa_key_pointer_equal);
              break;
@@ -602,8 +602,8 @@ index 09ca173..850ebe5 100644
           case KOPPER_WAYLAND:
           case KOPPER_WIN32:
              _mesa_hash_table_init(&screen->dts, screen, _mesa_hash_pointer, _mesa_key_pointer_equal);
-@@ -436,6 +472,18 @@ zink_kopper_displaytarget_create(struct zink_screen *screen, unsigned tex_usage,
- 
+@@ -466,6 +502,18 @@ zink_kopper_displaytarget_create(struct zink_screen *screen, unsigned tex_usage,
+
     simple_mtx_lock(&screen->dt_lock);
     switch (cdt->type) {
 +#ifdef VK_USE_PLATFORM_ANDROID_KHR
@@ -658,7 +658,7 @@ diff --git a/src/gallium/frontends/dri/meson.build b/src/gallium/frontends/dri/m
 index 6009322..87b9e6c 100644
 --- a/src/gallium/frontends/dri/meson.build
 +++ b/src/gallium/frontends/dri/meson.build
-@@ -61,7 +61,7 @@ endif
+@@ -65,7 +65,7 @@ endif
  
  libdri = static_library(
    'dri',
@@ -688,7 +688,7 @@ diff --git a/src/gallium/targets/dri/target.c b/src/gallium/targets/dri/target.c
 index d506869..7172bb6 100644
 --- a/src/gallium/targets/dri/target.c
 +++ b/src/gallium/targets/dri/target.c
-@@ -7,7 +7,9 @@
+@@ -9,7 +9,9 @@
  const __DRIextension **__driDriverGetExtensions_##drivername(void);       \
  PUBLIC const __DRIextension **__driDriverGetExtensions_##drivername(void) \
  {                                                                         \
@@ -697,27 +697,17 @@ index d506869..7172bb6 100644
 +   printf("STUB: __driDriverGetExtensions_swrast\n");                     \
 +   return NULL;                                                           \
  }
- 
+
  #if defined(GALLIUM_SOFTPIPE)
-@@ -128,7 +130,7 @@ DEFINE_LOADER_DRM_ENTRYPOINT(sun4i_drm)
- DEFINE_LOADER_DRM_ENTRYPOINT(lima)
- #endif
- 
--#if defined(GALLIUM_ZINK) && !defined(__APPLE__)
-+#if defined(GALLIUM_ZINK) && //!defined(__APPLE__)
- #if defined(ANDROID)
- DEFINE_LOADER_DRM_ENTRYPOINT(zink);
- #else
-@@ -136,7 +138,9 @@ const __DRIextension **__driDriverGetExtensions_zink(void);
- 
+@@ -146,7 +148,9 @@ const __DRIextension **__driDriverGetExtensions_zink(void);
+
  PUBLIC const __DRIextension **__driDriverGetExtensions_zink(void)
  {
--   return galliumvk_driver_extensions;
+-   return debug_get_bool_option("LIBGL_KOPPER_DISABLE", false) ? galliumdrm_driver_extensions : galliumvk_driver_extensions;
 +   //return galliumvk_driver_extensions;
 +   printf("STUB: __driDriverGetExtensions_zink\n");
 +   return NULL;
  }
- #endif
  #endif
 diff --git a/src/gallium/targets/osmesa/meson.build b/src/gallium/targets/osmesa/meson.build
 index d16e785..45df4b5 100644
@@ -801,7 +791,7 @@ index 20f0474..1221a02 100644
 @@ -73,6 +73,10 @@ files_libglx = files(
    'xfont.c',
  )
- 
+
 +if with_platform_android or host_machine.system() == 'darwin'
 +dep_xdamage = null_dep
 +endif
@@ -810,12 +800,12 @@ index 20f0474..1221a02 100644
  extra_deps_libgl = []
  extra_ld_args_libgl = []
 @@ -124,7 +128,7 @@ endif
- 
+
  libglx = static_library(
    'glx',
 -  [files_libglx, glx_generated],
 +  not with_platform_android and host_machine.system() != 'darwin' ? [files_libglx, glx_generated] : ['empty.c'],
-   include_directories : [inc_include, inc_src, inc_mapi, inc_mesa, inc_gallium, inc_gallium_aux, inc_glapi, inc_loader],
+   include_directories : [inc_include, inc_src, inc_glapi, inc_loader],
    c_args : [
      '-DGL_LIB_NAME="lib@0@.so.@1@"'.format(gl_lib_name, gl_lib_version.split('.')[0]),
 diff --git a/sync.pc b/sync.pc
