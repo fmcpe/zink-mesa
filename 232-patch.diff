@@ -685,7 +685,7 @@ index 721ecd6..1cb2a21 100644
    dependencies : [idep_mesautil],
  )
 diff --git a/src/gallium/targets/dri/target.c b/src/gallium/targets/dri/target.c
-index d506869..7172bb6 100644
+index b5e3603..06b22c2 100644
 --- a/src/gallium/targets/dri/target.c
 +++ b/src/gallium/targets/dri/target.c
 @@ -9,7 +9,9 @@
@@ -709,7 +709,8 @@ index d506869..7172bb6 100644
 +   return NULL;
  }
  #endif
- 
+
+
 diff --git a/src/gallium/targets/osmesa/meson.build b/src/gallium/targets/osmesa/meson.build
 index d16e785..45df4b5 100644
 --- a/src/gallium/targets/osmesa/meson.build
